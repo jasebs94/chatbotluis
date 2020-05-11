@@ -1,4 +1,4 @@
-from botbuilder.core import TurnContext,ActivityHandler,MessageFactory,UserState,CardFactory
+from botbuilder.core import TurnContext,ActivityHandler,MessageFactory,UserState,CardFactory,UserState,ConversationState
 from botbuilder.ai.luis import LuisApplication,LuisPredictionOptions,LuisRecognizer
 import json
 from weather.weatherApp import WeatherInformation
@@ -7,8 +7,11 @@ from botbuilder.ai.qna import QnAMaker, QnAMakerEndpoint
 from botbuilder.schema import ChannelAccount,HeroCard,CardImage,CardAction,ActionTypes,SuggestedActions
 from logger.logger import Log
 from flask import session,render_template
+import time
+from datetime import datetime
+from data_models import ConversationData, UserProfile
 class LuisConnect(ActivityHandler):
-    def __init__(self):
+    def __init__(self,conversation_state: ConversationState, user_state: UserState):
         self.config_reader = ConfigReader()
         self.configuration = self.config_reader.read_config()
         self.luis_app_id=self.configuration['LUIS_APP_ID']
@@ -27,9 +30,34 @@ class LuisConnect(ActivityHandler):
         self.stat='init'
         self.city=""
         self.score=""
+        
+        if conversation_state is None:
+            raise TypeError(
+                "[StateManagementBot]: Missing parameter. conversation_state is required but None was given"
+            )
+        if user_state is None:
+            raise TypeError(
+                "[StateManagementBot]: Missing parameter. user_state is required but None was given"
+            )
+
+        self.conversation_state = conversation_state
+        self.user_state = user_state
+
+        self.conversation_data_accessor = self.conversation_state.create_property(
+            "ConversationData"
+        )
+        self.user_profile_accessor = self.user_state.create_property("UserProfile")
         # session['IntentIdentified']=False
         # session['state']="init"
         # session['intent']='none'
+        
+        
+        
+    async def on_turn(self, turn_context: TurnContext):
+        await super().on_turn(turn_context)
+
+        await self.conversation_state.save_changes(turn_context)
+        await self.user_state.save_changes(turn_context)
  
     def welcome(self):
          return "Hi How can I help you?"
@@ -112,62 +140,88 @@ class LuisConnect(ActivityHandler):
     async def on_message_activity(self,turn_context:TurnContext):
         # weather_info=WeatherInformation()
         # print("new session :",session)
-        print("1",self.IntentIdentified)
-        print("turn_context",turn_context.activity.text)
-        if self.IntentIdentified==False:
-            luis_result = await self.luis_recognizer.recognize(turn_context)
-            result = luis_result.properties["luisResult"]
-            print(str(result.intents[0]))
-            intentDetails = json.loads((str(result.intents[0])).replace("'", "\""))
-            intent = intentDetails.get('intent')
-            score = intentDetails.get('score')
-            print(intent)
-            print(score)
-            self.IntentIdentified=True
-            self.intent=intent
-            self.score=score
-        if self.intent == "Welcome" and self.score > 0.5:
-            #bot_reply = "Hi How can I help you?"
-            #bot_reply = self.welcome()
-            await self.__send_intro_card(turn_context)
-            bot_reply = ""
-            self.IntentIdentified=False 
-        elif self.intent == "BookFlight" and self.score > 0.5:
-            if self.stat == 'init':
-                print(str(result.entities[0]))
-                json_str = json.loads((str(result.entities[0])).replace("'", "\""))
-                #weather=weather_info.get_weather_info(json_str.get('entity'))
-                self.city = json_str.get('entity')
-                bot_reply = "should I book a flight to " + self.city +"."
-                await turn_context.send_activity(f"{bot_reply}")
-                print("1")
-                #await self._send_suggested_actions(turn_context)
-                print("2")
-                text = turn_context.activity.text.lower()
-                print("text",text)
-                #response_text = self._process_input(text)
-                #await turn_context.send_activity(MessageFactory.text(response_text))
-                self.stat = 'bookFlight'
-                bot_reply = ""
-                return await self._send_suggested_actions(turn_context)
-            elif self.stat == 'bookFlight':
-                if turn_context.activity.text == "YES":
-                    bot_reply = "Booked a flight to " + self.city +"."
-                    self.stat = 'init'
-                else:
-                    bot_reply = "cancelled booking procedure."
-                    self.stat = 'init'
-            self.log.write_log(sessionID='session1',log_message="Bot Says: "+str(bot_reply))
-            self.IntentIdentified=False
-        elif self.score < 0.5:
-            # The actual call to the QnA Maker service.
-             bot_reply = ""
-             response = await self.qna_maker.get_answers(turn_context)
-             if response and len(response) > 0:
-               await turn_context.send_activity(MessageFactory.text(response[0].answer))
-             else:
-               await turn_context.send_activity("No QnA Maker answers were found.")
-        await turn_context.send_activity(f"{bot_reply}")
+        # Get the state properties from the turn context.
+        user_profile = await self.user_profile_accessor.get(turn_context, UserProfile)
+        conversation_data = await self.conversation_data_accessor.get(
+            turn_context, ConversationData
+        )
+        if user_profile.name is None:
+            # First time around this is undefined, so we will prompt user for name.
+            if conversation_data.prompted_for_user_name:
+                # Set the name to what the user provided.
+                user_profile.name = turn_context.activity.text
+
+                # Acknowledge that we got their name.
+                await turn_context.send_activity(
+                    f"Thanks { user_profile.name }. To see conversation data, type anything."
+                )
+
+                # Reset the flag to allow the bot to go though the cycle again.
+                conversation_data.prompted_for_user_name = False
+            else:
+                # Prompt the user for their name.
+                await turn_context.send_activity("What is your name?")
+
+                # Set the flag to true, so we don't prompt in the next turn.
+                conversation_data.prompted_for_user_name = True
+        else:
+            print("1",self.IntentIdentified)
+            print("turn_context",turn_context.activity.text)
+            if self.IntentIdentified==False:
+                luis_result = await self.luis_recognizer.recognize(turn_context)
+                result = luis_result.properties["luisResult"]
+                print(str(result.intents[0]))
+                intentDetails = json.loads((str(result.intents[0])).replace("'", "\""))
+                intent = intentDetails.get('intent')
+                score = intentDetails.get('score')
+                print(intent)
+                print(score)
+                self.IntentIdentified=True
+                self.intent=intent
+                self.score=score
+            if self.intent == "Welcome" and self.score > 0.5:
+                #bot_reply = "Hi How can I help you?"
+                #bot_reply = self.welcome()
+                await self.__send_intro_card(turn_context)
+                bot_reply = f"{ user_profile.name }. To where should i book a flight for you?."
+                self.IntentIdentified=False 
+            elif self.intent == "BookFlight" and self.score > 0.5:
+                if self.stat == 'init':
+                    print(str(result.entities[0]))
+                    json_str = json.loads((str(result.entities[0])).replace("'", "\""))
+                    #weather=weather_info.get_weather_info(json_str.get('entity'))
+                    self.city = json_str.get('entity')
+                    bot_reply = "should I book a flight to " + self.city +"."
+                    await turn_context.send_activity(f"{bot_reply}")
+                    print("1")
+                    #await self._send_suggested_actions(turn_context)
+                    print("2")
+                    text = turn_context.activity.text.lower()
+                    print("text",text)
+                    #response_text = self._process_input(text)
+                    #await turn_context.send_activity(MessageFactory.text(response_text))
+                    self.stat = 'bookFlight'
+                    bot_reply = ""
+                    return await self._send_suggested_actions(turn_context)
+                elif self.stat == 'bookFlight':
+                    if turn_context.activity.text == "YES":
+                        bot_reply = "Booked a flight to " + self.city +"."
+                        self.stat = 'init'
+                    else:
+                        bot_reply = "cancelled booking procedure."
+                        self.stat = 'init'
+                self.log.write_log(sessionID='session1',log_message="Bot Says: "+str(bot_reply))
+                self.IntentIdentified=False
+            elif self.score < 0.5:
+                # The actual call to the QnA Maker service.
+                 bot_reply = ""
+                 self.IntentIdentified=False 
+                 response = await self.qna_maker.get_answers(turn_context)
+                 if response and len(response) > 0:
+                   await turn_context.send_activity(MessageFactory.text(response[0].answer))
+                 else:
+                   await turn_context.send_activity("No QnA Maker answers were found.")
+            await turn_context.send_activity(f"{bot_reply}")
           
           
     async def on_members_added_activity(

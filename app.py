@@ -1,6 +1,6 @@
 from flask import Flask, request, Response,session,render_template
 from flask_ngrok import run_with_ngrok
-from botbuilder.core import BotFrameworkAdapter, BotFrameworkAdapterSettings, ConversationState,MemoryStorage
+from botbuilder.core import BotFrameworkAdapter, BotFrameworkAdapterSettings, ConversationState,MemoryStorage,UserState
 from botbuilder.schema import Activity
 import asyncio
 from luis.luisApp import LuisConnect
@@ -15,8 +15,11 @@ app.secret_key='12345qwert67890yuiop08641wryip9u8'
 bot_settings = BotFrameworkAdapterSettings("", "")
 bot_adapter = BotFrameworkAdapter(bot_settings)
 ACCESS_TOKEN = "EAAQKRuNwM1kBAANmHFmR7Btqr06ZBfR8xov0ES0TAiweKRSB6MsYbIEZCtuzXz1JGEcWXhivSNwMYGpc8lyA9QduO6RUTt4fzfjdL2KZCbZCZC615vMmFhedwqNaH0wX7zebZBOUxoUrx4o4BFeKUQ2fTZA2PU7oq8aVYPXNhuSiAZDZD"
-#CON_MEMORY = ConversationState(MemoryStorage())
-luis_bot_dialog = LuisConnect()
+# Create MemoryStorage and state
+MEMORY = MemoryStorage()
+USER_STATE = UserState(MEMORY)
+CONVERSATION_STATE = ConversationState(MEMORY)
+luis_bot_dialog = LuisConnect(CONVERSATION_STATE, USER_STATE)
 
 
 
