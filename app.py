@@ -6,6 +6,7 @@ import asyncio
 from luis.luisApp import LuisConnect
 import os
 from logger.logger import Log
+import requests
 
 
 app = Flask(__name__)
