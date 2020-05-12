@@ -36,6 +36,7 @@ def messages():
         return 'Invalid verification token'
     elif request.method =='POST':
         data = request.get_json()
+        print(data)
         message = data['entry'][0]['messaging'][0]['message']
         sender_id = data['entry'][0]['messaging'][0]['sender']['id']
         if message['text']:
