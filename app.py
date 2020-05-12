@@ -22,7 +22,7 @@ MEMORY = MemoryStorage()
 USER_STATE = UserState(MEMORY)
 CONVERSATION_STATE = ConversationState(MEMORY)
 luis_bot_dialog = LuisConnect(CONVERSATION_STATE, USER_STATE)
-
+bot = Bot(ACCESS_TOKEN)
 
 
 
