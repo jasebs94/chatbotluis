@@ -7,6 +7,7 @@ from luis.luisApp import LuisConnect
 import os
 from logger.logger import Log
 import requests
+from pymessenger import Bot
 
 
 app = Flask(__name__)
@@ -34,21 +35,24 @@ def messages():
              return request.args.get("hub.challenge")
              print("2")
         return 'Invalid verification token'
-    # elif request.method =='POST':
-        # data = request.get_json()
-        # print(data)
-        # message = data['entry'][0]['messaging'][0]['message']
-        # sender_id = data['entry'][0]['messaging'][0]['sender']['id']
-        # if message['text']:
-            # request_body = {
-                    # 'recipient': {
-                        # 'id': sender_id
-                    # },
-                    # 'message': {"text":"hello, world!"}
-                # }
-            # response = requests.post('https://graph.facebook.com/v5.0/me/messages?access_token='+ACCESS_TOKEN,json=request_body).json()
-            # return response
-        # return 'ok'
+    elif request.method =='POST':
+        data = request.get_json()
+        if data['object'] == "page":
+            entries = data['entry']
+
+            for entry in entries:
+                messaging = entry['messaging']
+
+                for messaging_event in messaging:
+
+                    sender = messaging_event['sender']['id']
+                    recipient = messaging_event['recipient']['id']
+
+                    if messaging_event.get('message'):
+                        if messaging_event['message'].get('text'):
+                            query = messaging_event['message']['text']
+                            bot.send_text_message(sender, query)
+        return "ok", 200
     else:
         if "application/json" in request.headers["content-type"]:
             log=Log()
