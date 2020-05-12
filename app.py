@@ -34,26 +34,28 @@ def messages():
              return request.args.get("hub.challenge")
              print("2")
         return 'Invalid verification token'
-    elif request.method =='POST':
-        data = request.get_json()
-        print(data)
-        message = data['entry'][0]['messaging'][0]['message']
-        sender_id = data['entry'][0]['messaging'][0]['sender']['id']
-        if message['text']:
-            request_body = {
-                    'recipient': {
-                        'id': sender_id
-                    },
-                    'message': {"text":"hello, world!"}
-                }
-            response = requests.post('https://graph.facebook.com/v5.0/me/messages?access_token='+ACCESS_TOKEN,json=request_body).json()
-            return response
-        return 'ok'
+    # elif request.method =='POST':
+        # data = request.get_json()
+        # print(data)
+        # message = data['entry'][0]['messaging'][0]['message']
+        # sender_id = data['entry'][0]['messaging'][0]['sender']['id']
+        # if message['text']:
+            # request_body = {
+                    # 'recipient': {
+                        # 'id': sender_id
+                    # },
+                    # 'message': {"text":"hello, world!"}
+                # }
+            # response = requests.post('https://graph.facebook.com/v5.0/me/messages?access_token='+ACCESS_TOKEN,json=request_body).json()
+            # return response
+        # return 'ok'
     else:
         if "application/json" in request.headers["content-type"]:
             log=Log()
             request_body = request.json
+            print("request_body",request_body)
             user_says = Activity().deserialize(request_body)
+            print("user_says",user_says)
             log.write_log(sessionID='session1',log_message="user says: "+str(user_says))
             authorization_header = (request.headers["Authorization"] if "Authorization" in request.headers else "")
 

@@ -146,6 +146,7 @@ class LuisConnect(ActivityHandler):
             turn_context, ConversationData
         )
         conversation_data.channel_id = turn_context.activity.channel_id
+        print(conversation_data.channel_id)
         if user_profile.name is None:
             # First time around this is undefined, so we will prompt user for name.
             if conversation_data.prompted_for_user_name:
