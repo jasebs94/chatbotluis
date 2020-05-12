@@ -14,7 +14,7 @@ loop = asyncio.get_event_loop()
 app.secret_key='12345qwert67890yuiop08641wryip9u8'
 bot_settings = BotFrameworkAdapterSettings("", "")
 bot_adapter = BotFrameworkAdapter(bot_settings)
-ACCESS_TOKEN = "EAAQKRuNwM1kBAANmHFmR7Btqr06ZBfR8xov0ES0TAiweKRSB6MsYbIEZCtuzXz1JGEcWXhivSNwMYGpc8lyA9QduO6RUTt4fzfjdL2KZCbZCZC615vMmFhedwqNaH0wX7zebZBOUxoUrx4o4BFeKUQ2fTZA2PU7oq8aVYPXNhuSiAZDZD"
+ACCESS_TOKEN = "EAAQKRuNwM1kBANHWWYeZBcyScRhI0j7k187stkNMHBYXTzFavNcJaZAi3RvZCVaoNr0PChTEAIirnx9HPI40bduw4X8SzFrsEg9C2fzZAWmZAG2Rk7UimvE1KlZBdEe5RZAeSAQEW6ZBPFjZBZBgV9T1Em8dZCZAQySPSUQlZCGXu0Po6DAZDZD"
 # Create MemoryStorage and state
 MEMORY = MemoryStorage()
 USER_STATE = UserState(MEMORY)
@@ -29,7 +29,7 @@ def messages():
     if request.method =='GET':
         token_sent = request.args.get("hub.verify_token")
         print("1")
-        if token_sent == 'LUIS':
+        if token_sent == ACCESS_TOKEN:
              return request.args.get("hub.challenge")
              print("2")
         return 'Invalid verification token'
