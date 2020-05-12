@@ -29,7 +29,7 @@ def messages():
     if request.method =='GET':
         token_sent = request.args.get("hub.verify_token")
         print("1")
-        if token_sent == ACCESS_TOKEN:
+        if token_sent == LUIS:
              return request.args.get("hub.challenge")
              print("2")
         return 'Invalid verification token'
