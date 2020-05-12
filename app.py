@@ -33,6 +33,20 @@ def messages():
              return request.args.get("hub.challenge")
              print("2")
         return 'Invalid verification token'
+    elif request.method =='POST':
+        data = request.get_json()
+        message = data['entry'][0]['messaging'][0]['message']
+        sender_id = data['entry'][0]['messaging'][0]['sender']['id']
+        if message['text']:
+            request_body = {
+                    'recipient': {
+                        'id': sender_id
+                    },
+                    'message': {"text":"hello, world!"}
+                }
+            response = requests.post('https://graph.facebook.com/v5.0/me/messages?access_token='+ACCESS_TOKEN,json=request_body).json()
+            return response
+        return 'ok
         
     else:
         if "application/json" in request.headers["content-type"]:
