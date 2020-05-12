@@ -36,23 +36,36 @@ def messages():
              print("2")
         return 'Invalid verification token'
     elif request.method =='POST':
-        data = request.get_json()
-        if data['object'] == "page":
-            entries = data['entry']
+        # data = request.get_json()
+        # if data['object'] == "page":
+            # entries = data['entry']
 
-            for entry in entries:
-                messaging = entry['messaging']
+            # for entry in entries:
+                # messaging = entry['messaging']
 
-                for messaging_event in messaging:
+                # for messaging_event in messaging:
 
-                    sender = messaging_event['sender']['id']
-                    recipient = messaging_event['recipient']['id']
+                    # sender = messaging_event['sender']['id']
+                    # recipient = messaging_event['recipient']['id']
 
-                    if messaging_event.get('message'):
-                        if messaging_event['message'].get('text'):
-                            query = messaging_event['message']['text']
-                            bot.send_text_message(sender, query)
-        return "ok", 200
+                    # if messaging_event.get('message'):
+                        # if messaging_event['message'].get('text'):
+                            # query = messaging_event['message']['text']
+                            # bot.send_text_message(sender, query)
+        # return "ok", 200
+        async def messages(req: Request) -> Response:
+            if "application/json" in req.headers["Content-Type"]:
+                body = await req.json()
+            else:
+                return Response(status=415)
+
+            activity = Activity().deserialize(body)
+            auth_header = req.headers["Authorization"] if "Authorization" in req.headers else ""
+
+            response = await ADAPTER.process_activity(activity, auth_header, luis_bot_dialog.on_turn)
+            if response:
+                return json_response(data=response.body, status=response.status)
+            return Response(status=201)
     else:
         if "application/json" in request.headers["content-type"]:
             log=Log()
