@@ -9,7 +9,7 @@ from logger.logger import Log
 
 
 app = Flask(__name__)
-# run_with_ngrok(app)
+#run_with_ngrok(app)
 loop = asyncio.get_event_loop()
 app.secret_key='12345qwert67890yuiop08641wryip9u8'
 bot_settings = BotFrameworkAdapterSettings("", "")

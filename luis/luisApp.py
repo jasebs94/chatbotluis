@@ -145,6 +145,7 @@ class LuisConnect(ActivityHandler):
         conversation_data = await self.conversation_data_accessor.get(
             turn_context, ConversationData
         )
+        conversation_data.channel_id = turn_context.activity.channel_id
         if user_profile.name is None:
             # First time around this is undefined, so we will prompt user for name.
             if conversation_data.prompted_for_user_name:
@@ -153,7 +154,7 @@ class LuisConnect(ActivityHandler):
 
                 # Acknowledge that we got their name.
                 await turn_context.send_activity(
-                    f"Thanks { user_profile.name }. To see conversation data, type anything."
+                    f"Thanks { user_profile.name }. To see conversation data, type anything in the {conversation_data.channel_id}"
                 )
 
                 # Reset the flag to allow the bot to go though the cycle again.
