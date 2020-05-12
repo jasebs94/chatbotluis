@@ -46,8 +46,7 @@ def messages():
                 }
             response = requests.post('https://graph.facebook.com/v5.0/me/messages?access_token='+ACCESS_TOKEN,json=request_body).json()
             return response
-        return 'ok
-        
+        return 'ok'
     else:
         if "application/json" in request.headers["content-type"]:
             log=Log()
