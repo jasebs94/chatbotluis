@@ -19,6 +19,6 @@ def getIntent(input):
         'subscription-key': key
     }
 
-    r = requests.get(f'https://{endpoint}/luis/prediction/v3.0/apps/{appId}/slots/production/predict',headers=headers, params=params)
+    r = requests.get(f'https://westus.api.cognitive.microsoft.com/luis/prediction/v3.0/apps/{appId}/slots/production/predict',headers=headers, params=params)
     print(r.json())
 
