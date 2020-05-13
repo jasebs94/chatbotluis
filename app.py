@@ -53,7 +53,7 @@ def messages():
                     if messaging_event.get('message'):
                         if messaging_event['message'].get('text'):
                             query = messaging_event['message']['text']
-                            bot.send_text_message(sender, query)
+                            bot.send_text_message(sender, "Hello how are you")
         return "ok", 200
         # async def messages(req: Request) -> Response:
             # if "application/json" in req.headers["Content-Type"]:
