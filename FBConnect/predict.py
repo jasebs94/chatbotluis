@@ -24,7 +24,7 @@ def getIntent(input):
     result = r.json()
     print(result['prediction']['topIntent'])
     intent = result['prediction']['topIntent']
-    score = result['sentiment']['score']
+    score = result['prediction']['sentiment']['score']
     print(intent)
     print(score)
     if intent == "Welcome" and score > 0.5:
