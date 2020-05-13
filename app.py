@@ -41,7 +41,8 @@ def messages():
     elif request.method =='POST':
         data = request.get_json()
         print(data)
-        if data['channelId'] != 'emulator':
+        #if data['channelId'] != 'emulator':
+        if 'object' in data.keys():
             if data['object'] == "page":
                 entries = data['entry']
 
