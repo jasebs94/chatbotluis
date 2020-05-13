@@ -10,6 +10,7 @@ import requests
 from pymessenger import Bot
 from aiohttp import web
 from aiohttp.web import Request, Response, json_response
+from FBConnect import predict
 
 
 app = Flask(__name__)
@@ -39,56 +40,60 @@ def messages():
         return 'Invalid verification token'
     elif request.method =='POST':
         data = request.get_json()
-        if data['object'] == "page":
-            entries = data['entry']
+        print(data)
+        if data['channelId'] != 'emulator':
+            if data['object'] == "page":
+                entries = data['entry']
 
-            for entry in entries:
-                messaging = entry['messaging']
+                for entry in entries:
+                    messaging = entry['messaging']
 
-                for messaging_event in messaging:
+                    for messaging_event in messaging:
 
-                    sender = messaging_event['sender']['id']
-                    recipient = messaging_event['recipient']['id']
+                        sender = messaging_event['sender']['id']
+                        recipient = messaging_event['recipient']['id']
 
-                    if messaging_event.get('message'):
-                        if messaging_event['message'].get('text'):
-                            query = messaging_event['message']['text']
-                            bot.send_text_message(sender, "Hello how are you")
-        return "ok", 200
-        # async def messages(req: Request) -> Response:
-            # if "application/json" in req.headers["Content-Type"]:
-                # body = await req.json()
-            # else:
-                # return Response(status=415)
+                        if messaging_event.get('message'):
+                            if messaging_event['message'].get('text'):
+                                query = messaging_event['message']['text']
+                                predict.getIntent(query)
+                                bot.send_text_message(sender, "Hello how are you")
+                                
+            return "ok", 200
+            # async def messages(req: Request) -> Response:
+                # if "application/json" in req.headers["Content-Type"]:
+                    # body = await req.json()
+                # else:
+                    # return Response(status=415)
 
-            # activity = Activity().deserialize(body)
-            # auth_header = req.headers["Authorization"] if "Authorization" in req.headers else ""
+                # activity = Activity().deserialize(body)
+                # auth_header = req.headers["Authorization"] if "Authorization" in req.headers else ""
 
-            # response = await ADAPTER.process_activity(activity, auth_header, luis_bot_dialog.on_turn)
-            # if response:
-                # return json_response(data=response.body, status=response.status)
-            # return Response(status=201)
-    else:
-        if "application/json" in request.headers["content-type"]:
-            log=Log()
-            request_body = request.json
-            print("request_body",request_body)
-            user_says = Activity().deserialize(request_body)
-            print("user_says",user_says)
-            log.write_log(sessionID='session1',log_message="user says: "+str(user_says))
-            authorization_header = (request.headers["Authorization"] if "Authorization" in request.headers else "")
-
-            async def call_user_fun(turncontext):
-               
-                await luis_bot_dialog.on_turn(turncontext)
-
-            task = loop.create_task(
-                bot_adapter.process_activity(user_says, authorization_header, call_user_fun)
-            )
-            loop.run_until_complete(task)
-            return ""
+                # response = await ADAPTER.process_activity(activity, auth_header, luis_bot_dialog.on_turn)
+                # if response:
+                    # return json_response(data=response.body, status=response.status)
+                # return Response(status=201)
         else:
-            return Response(status=406)  # status for Not Acceptable
+            if "application/json" in request.headers["content-type"]:
+                log=Log()
+                request_body = request.json
+                print("request_body",request_body)
+                user_says = Activity().deserialize(request_body)
+                print("user_says",user_says)
+                log.write_log(sessionID='session1',log_message="user says: "+str(user_says))
+                authorization_header = (request.headers["Authorization"] if "Authorization" in request.headers else "")
+
+                async def call_user_fun(turncontext):
+                   
+                    await luis_bot_dialog.on_turn(turncontext)
+
+                task = loop.create_task(
+                    bot_adapter.process_activity(user_says, authorization_header, call_user_fun)
+                )
+                loop.run_until_complete(task)
+                return ""
+            else:
+                return Response(status=406)  # status for Not Acceptable
 
 
 
