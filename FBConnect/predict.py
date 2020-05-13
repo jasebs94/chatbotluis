@@ -1,5 +1,4 @@
 import requests
-import session
 
 def getIntent(input):
     key = 'a6abad89190342d2a5006377f7e9bf54' # your Runtime key
