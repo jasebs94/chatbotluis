@@ -1,4 +1,5 @@
 import requests
+import session
 
 def getIntent(input):
     key = 'a6abad89190342d2a5006377f7e9bf54' # your Runtime key
@@ -23,9 +24,13 @@ def getIntent(input):
     print(r.json())
     result = r.json()
     print(result['prediction']['topIntent'])
-    # intentDetails = json.loads((str(result.intents[0])).replace("'", "\""))
-    # intent = intentDetails.get('intent')
-    # score = intentDetails.get('score')
-    # print(intent)
-    # print(score)
-
+    intent = result['prediction']['topIntent']
+    score = result['sentiment']['score']
+    print(intent)
+    print(score)
+    if intent == "Welcome" and score > 0.5:
+        reply = "Hello how are you.To where can I book you a flight?"
+    elif intent == "BookFlight" and score > 0.5:
+        reply = "ok?"
+        
+    return reply

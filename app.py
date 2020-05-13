@@ -57,8 +57,8 @@ def messages():
                         if messaging_event.get('message'):
                             if messaging_event['message'].get('text'):
                                 query = messaging_event['message']['text']
-                                predict.getIntent(query)
-                                bot.send_text_message(sender, "Hello how are you")
+                                reply = predict.getIntent(query)
+                                bot.send_text_message(sender, reply)
                                 
             return "ok", 200
             # async def messages(req: Request) -> Response:
