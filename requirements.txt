@@ -44,7 +44,7 @@ gunicorn==20.0.4
 idna==2.8
 isodate==0.6.0
 itsdangerous==1.1.0
-Jinja2==2.11.0
+Jinja2==2.11.3
 jinja2-time==0.2.0
 joblib==0.14.1
 jsonpickle==1.2
